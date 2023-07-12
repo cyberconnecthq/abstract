@@ -1,0 +1,50 @@
+{
+  "name": "@cyberlab/abstract",
+  "version": "1.0.0",
+  "description": "CyberConnect Abstract Account SDK",
+  "types": "./lib/cjs/types/index.d.ts",
+  "main": "index.js",
+  "files": [
+    "lib/**/*"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/esm/types/index.d.ts",
+        "default": "./lib/esm/index.mjs"
+      },
+      "require": {
+        "types": "./lib/cjs/types/index.d.ts",
+        "default": "./lib/cjs/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf ./lib",
+    "build": "pnpm run clean && pnpm run build:esm && pnpm run build:cjs",
+    "build:esm": "tsc -p ./tsconfig.esm.json && mv lib/esm/index.js lib/esm/index.mjs",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json",
+    "prepack": "pnpm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cyberconnecthq/abstract.git"
+  },
+  "keywords": [
+    "Account",
+    "Abstraction",
+    "ERC4337",
+    "Smart",
+    "Contract",
+    "Wallet"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cyberconnecthq/abstract/issues"
+  },
+  "homepage": "https://github.com/cyberconnecthq/abstract#readme",
+  "dependencies": {
+    "prettier": "^3.0.0"
+  }
+}
