@@ -1,6 +1,6 @@
 {
   "name": "@cyberlab/abstract",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "description": "CyberConnect Abstract Account SDK",
   "types": "./lib/cjs/types/index.d.ts",
   "main": "index.js",
@@ -24,11 +24,12 @@
     "build": "pnpm run clean && pnpm run build:esm && pnpm run build:cjs",
     "build:esm": "tsc -p ./tsconfig.esm.json && mv lib/esm/index.js lib/esm/index.mjs",
     "build:cjs": "tsc -p ./tsconfig.cjs.json",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm run build",
+    "semantic-release": "semantic-release"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cyberconnecthq/abstract.git"
+    "url": "https://github.com/cyberconnecthq/abstract.git"
   },
   "keywords": [
     "Account",
@@ -46,5 +47,8 @@
   "homepage": "https://github.com/cyberconnecthq/abstract#readme",
   "dependencies": {
     "prettier": "^3.0.0"
+  },
+  "devDependencies": {
+    "semantic-release": "^21.0.7"
   }
 }
