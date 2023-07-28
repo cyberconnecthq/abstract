@@ -1,5 +1,6 @@
 {
   "name": "@cyberlab/abstract",
+  "private": false,
   "version": "0.0.0-development",
   "description": "CyberConnect Abstract Account SDK",
   "types": "./lib/cjs/types/index.d.ts",
