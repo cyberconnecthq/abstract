@@ -47,7 +47,9 @@
   },
   "homepage": "https://github.com/cyberconnecthq/abstract#readme",
   "dependencies": {
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "viem": "^1.4.2",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "semantic-release": "^21.0.7"
