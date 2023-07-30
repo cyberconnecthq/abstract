@@ -6,21 +6,33 @@ import {
   type Hash,
   SignMessageReturnType,
 } from "viem";
-import { mainnet, type Chain } from "viem/chains";
+import { mainnet } from "viem/chains";
 import {
   type UserOperation,
   type CyberConnectActions,
   type CyberConnectClient,
+  type RpcContext,
+  type EstimateContractCall,
+  type SponsorContractCall,
+  type BaseContractCall,
 } from "./schema";
 
+const ENTRY_POINT = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
+
 function CyberAbstract(
-  signMessage: (message: string) => Promise<SignMessageReturnType>,
-  rpcUrl?: string
+  signMessage: (message: string) => Promise<SignMessageReturnType | undefined>,
+  rpcUrl: string,
+  options?: { entryPoint: Address }
 ) {
+  const entryPoint = options?.entryPoint || ENTRY_POINT;
+  const nonce = 1;
+  const value = "0";
+
   const transport = http(rpcUrl);
+
   const cyberConnectActions = (): CyberConnectActions => ({
-    estimateUserOperation,
-    getUnsignedUserOperation,
+    estimateTransaction,
+    sponsorUserOperation,
     sendUserOperation,
     getUserOperationByHash,
   });
@@ -30,113 +42,86 @@ function CyberAbstract(
     transport,
   }).extend(cyberConnectActions);
 
-  async function estimateUserOperation(chainId: Chain["id"], callData: Hex) {
+  async function estimateTransaction(
+    contractCall: BaseContractCall,
+    ctx: RpcContext
+  ) {
     return await client.request({
       method: "cc_estimateUserOperation",
-      params: [chainId, callData],
+      params: [{ ...contractCall, nonce, value, ep: entryPoint }, ctx],
     });
   }
 
-  async function getUnsignedUserOperation(
-    chainId: Chain["id"],
-    callData: Hex,
-    gasPrice: number,
-    sender: Address,
-    to: Address
+  async function sponsorUserOperation(
+    contractCall: Omit<SponsorContractCall, "ep">,
+    ctx: RpcContext
   ) {
     return await client.request({
       method: "cc_sponsorUserOperation",
-      params: [chainId, callData, gasPrice, sender, to],
+      params: [{ ...contractCall, ep: entryPoint }, ctx],
     });
-  }
-
-  async function getUnsignedUserOperationHash(
-    chainId: Chain["id"],
-    callData: Hex,
-    gasPrice: number,
-    sender: Address,
-    to: Address
-  ) {
-    const response = await getUnsignedUserOperation(
-      chainId,
-      callData,
-      gasPrice,
-      sender,
-      to
-    );
-
-    return response.hash;
   }
 
   async function sendUserOperation(
-    chainId: Chain["id"],
     userOperation: UserOperation,
-    sender: Address
-  ): Promise<Hash> {
+    ctx: RpcContext
+  ) {
     return await client.request({
       method: "eth_sendUserOperation",
-      params: [chainId, userOperation, sender],
+      params: [userOperation, entryPoint, ctx],
     });
   }
 
-  async function getUserOperationByHash(hash: Hash): Promise<UserOperation> {
+  async function getUserOperationByHash(userOperationHash: Hash) {
     return await client.request({
       method: "eth_getUserOperationByHash",
-      params: [hash],
+      params: [userOperationHash],
     });
   }
 
   async function sendTransaction(
-    chainId: Chain["id"],
-    callData: Hex,
-    sender: Address,
-    to: Address
+    contractCall: BaseContractCall,
+    ctx: RpcContext
   ) {
-    const estimatedGas = await estimateUserOperation(chainId, callData);
+    const estimatedGas = await estimateTransaction(contractCall, ctx);
 
-    console.log("---------- Send Transaction: estimatedGas----------");
-    console.log(estimatedGas);
+    const sponsorContractCall = {
+      ...contractCall,
+      nonce,
+      value,
+      maxFeePerGas: estimatedGas.gasPriceFast,
+    };
 
-    const res = await getUnsignedUserOperation(
-      chainId,
-      callData,
-      estimatedGas,
-      sender,
-      to
+    const sponsoredUserOperation = await sponsorUserOperation(
+      sponsorContractCall,
+      ctx
     );
 
-    console.log(
-      "---------- Send Transaction: getUnsignedUserOperation----------"
-    );
-    console.log(res);
-
-    const signature = await signMessage(res.hash);
-    console.log("---------- Send Transaction: signature ----------");
-    console.log(signature);
-
-    const userOperation = { ...res.userOperation, signature };
-
-    const userOperationHash = await sendUserOperation(
-      chainId,
-      userOperation,
-      sender
+    const signature = await signMessage(
+      sponsoredUserOperation.userOperationHash
     );
 
-    console.log("---------- Send Transaction: userOperationHash ----------");
-    console.log(userOperationHash);
+    if (!signature) {
+      return;
+    }
 
-    const userOperationResult = await getUserOperationByHash(userOperationHash);
+    const userOperation = {
+      ...sponsoredUserOperation.userOperation,
+      signature,
+    };
 
-    console.log("---------- Send Transaction: Success ----------");
-    console.log("userOperationResult: ", userOperationResult);
+    const result = await sendUserOperation(userOperation, ctx);
 
-    return userOperationResult;
+    const userOperationTransaction = await getUserOperationByHash(
+      result.userOperationHash
+    );
+
+    return userOperationTransaction;
   }
 
   return {
-    estimateUserOperation,
-    getUnsignedUserOperation,
-    getUnsignedUserOperationHash,
+    estimateTransaction,
+    sponsorUserOperation,
     sendUserOperation,
     getUserOperationByHash,
     sendTransaction,

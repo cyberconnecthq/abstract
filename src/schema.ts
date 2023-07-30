@@ -9,7 +9,7 @@ import {
   type Account,
 } from "viem";
 
-const { object, string, number } = z;
+const { object, string, number, bigint } = z;
 
 const hexString = z.custom<Hex>((val) => {
   return /^0x.*$/.test(val as string);
@@ -24,42 +24,97 @@ const UserOperationSchema = object({
   nonce: number(),
   initCode: hexString,
   callData: hexString,
-  callGasLimit: number(),
-  verificationGasLimit: number(),
-  preVerificationGas: number(),
-  maxFeePerGas: number(),
-  maxPriorityFeePerGas: number(),
+  callGasLimit: bigint(),
+  verificationGasLimit: bigint(),
+  preVerificationGas: bigint(),
+  maxFeePerGas: bigint(),
+  maxPriorityFeePerGas: bigint(),
   paymasterAndData: hexString,
   signature: hashString,
 }).required();
+
+const RpcContextSchema = object({
+  chainId: number(),
+  owner: hashString,
+});
 
 const UnsignedUserOperationSchema = UserOperationSchema.omit({
   signature: true,
 });
 
+const EstimatedUserOperationSchema = object({
+  chainId: number(),
+  totalGasLimit: bigint(),
+  totalGasFee: bigint(),
+  credits: number(),
+  gasPriceSlow: bigint(),
+  gasPriceMedium: bigint(),
+  gasPriceFast: bigint(),
+});
+
+export type EstimateUserOperationReturn = z.infer<
+  typeof EstimatedUserOperationSchema
+>;
+
+export type SponsorUserOperationReturn = {
+  userOperation: UnsignedUserOperation;
+  userOperationHash: Hash;
+};
+
+export type SendUserOperationReturn = {
+  userOperation: UserOperation;
+  userOperationHash: Hash;
+};
+
 export type UnsignedUserOperation = z.infer<typeof UnsignedUserOperationSchema>;
 export type UserOperation = z.infer<typeof UserOperationSchema>;
+export type RpcContext = z.infer<typeof RpcContextSchema>;
+
+export type UserOperationTransaction = {
+  transactionHash: Hash;
+  blockNumber: number;
+  blockHash: Hash;
+  actualGasUsed: number;
+  actualGasCost: number;
+  success: boolean;
+};
+
+export interface BaseContractCall {
+  sender: Address;
+  to: Address;
+  callData: Hex;
+}
+
+export interface EstimateContractCall extends BaseContractCall {
+  value: string;
+  nonce: number;
+  ep: Address;
+}
+
+export type SponsorContractCall = EstimateContractCall & {
+  maxFeePerGas: bigint;
+};
 
 export type CyberConnectRpcSchema = [
   {
     Method: "cc_estimateUserOperation";
-    Parameters: [number, Hex];
-    ReturnType: number;
+    Parameters: [EstimateContractCall, RpcContext];
+    ReturnType: EstimateUserOperationReturn;
   },
   {
     Method: "cc_sponsorUserOperation";
-    parameters: [number, Hex, number, Address, Address];
-    ReturnType: { userOperation: UnsignedUserOperation; hash: Hash };
+    parameters: [SponsorContractCall, RpcContext];
+    ReturnType: SponsorUserOperationReturn;
   },
   {
     Method: "eth_sendUserOperation";
-    parameters: [number, UserOperation, Address, Address];
-    ReturnType: Hash;
+    parameters: [UserOperation, Address, RpcContext];
+    ReturnType: SendUserOperationReturn;
   },
   {
     Method: "eth_getUserOperationByHash";
     Parameters: [Hash];
-    ReturnType: UserOperation;
+    ReturnType: UserOperationTransaction;
   }
 ];
 
@@ -72,29 +127,24 @@ export type CyberConnectClient = Client<
 >;
 
 export type CyberConnectActions = {
-  estimateUserOperation: (
-    chainId: Chain["id"],
-    callData: Hex
-  ) => Promise<number>;
+  estimateTransaction: (
+    contractCall: Omit<EstimateContractCall, "ep">,
+    ctx: RpcContext
+  ) => Promise<EstimateUserOperationReturn>;
 
-  getUnsignedUserOperation: (
-    chainId: Chain["id"],
-    callData: Hex,
-    gasPrice: number,
-    sender: Address,
-    to: Address
-  ) => Promise<{
-    userOperation: UnsignedUserOperation;
-    hash: Hash;
-  }>;
+  sponsorUserOperation: (
+    contractCall: Omit<SponsorContractCall, "ep">,
+    ctx: RpcContext
+  ) => Promise<SponsorUserOperationReturn>;
 
   sendUserOperation: (
-    chainId: Chain["id"],
     userOperation: UserOperation,
-    sender: Address
-  ) => Promise<Hash>;
+    ctx: RpcContext
+  ) => Promise<SendUserOperationReturn>;
 
-  getUserOperationByHash: (hash: Hash) => Promise<UserOperation>;
+  getUserOperationByHash: (
+    userOperationHash: Hash
+  ) => Promise<UserOperationTransaction>;
 };
 
 export { UserOperationSchema, UnsignedUserOperationSchema };
