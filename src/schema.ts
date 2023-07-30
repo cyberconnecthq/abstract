@@ -87,13 +87,17 @@ export interface BaseContractCall {
 
 export interface EstimateContractCall extends BaseContractCall {
   value: string;
-  nonce?: number;
+  nonce: number | null;
   ep: Address;
+  maxFeePerGas: null;
 }
 
-export type SponsorContractCall = EstimateContractCall & {
+export interface SponsorContractCall extends BaseContractCall {
+  value: string;
+  nonce: number | null;
+  ep: Address;
   maxFeePerGas: bigint;
-};
+}
 
 export type CyberConnectRpcSchema = [
   {
