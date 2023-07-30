@@ -87,7 +87,7 @@ export interface BaseContractCall {
 
 export interface EstimateContractCall extends BaseContractCall {
   value: string;
-  nonce: number;
+  nonce?: number;
   ep: Address;
 }
 

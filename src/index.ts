@@ -25,7 +25,6 @@ function CyberAbstract(
   options?: { entryPoint: Address }
 ) {
   const entryPoint = options?.entryPoint || ENTRY_POINT;
-  const nonce = 1;
   const value = "0";
 
   const transport = http(rpcUrl);
@@ -48,7 +47,7 @@ function CyberAbstract(
   ) {
     return await client.request({
       method: "cc_estimateUserOperation",
-      params: [{ ...contractCall, nonce, value, ep: entryPoint }, ctx],
+      params: [{ ...contractCall, value, ep: entryPoint }, ctx],
     });
   }
 
@@ -87,7 +86,6 @@ function CyberAbstract(
 
     const sponsorContractCall = {
       ...contractCall,
-      nonce,
       value,
       maxFeePerGas: estimatedGas.gasPriceFast,
     };
