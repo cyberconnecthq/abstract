@@ -123,7 +123,7 @@ function CyberAbstract(
       ctx
     );
 
-    return userOperationTransaction;
+    return { userOperationTransaction, userOperationHash };
   }
 
   return {
