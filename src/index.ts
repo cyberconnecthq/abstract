@@ -75,10 +75,13 @@ function CyberAbstract(
     });
   }
 
-  async function getUserOperationByHash(userOperationHash: Hash) {
+  async function getUserOperationByHash(
+    userOperationHash: Hash,
+    ctx: RpcContext
+  ) {
     return await client.request({
       method: "eth_getUserOperationByHash",
-      params: [userOperationHash],
+      params: [userOperationHash, { chainId: ctx.chainId }],
     });
   }
 
@@ -113,9 +116,12 @@ function CyberAbstract(
       signature,
     };
 
-    const result = await sendUserOperation(userOperation, ctx);
+    const userOperationHash = await sendUserOperation(userOperation, ctx);
 
-    const userOperationTransaction = await getUserOperationByHash(result);
+    const userOperationTransaction = await getUserOperationByHash(
+      userOperationHash,
+      ctx
+    );
 
     return userOperationTransaction;
   }

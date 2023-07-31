@@ -71,9 +71,8 @@ export type UserOperationTransaction = {
   transactionHash: Hash;
   blockNumber: number;
   blockHash: Hash;
-  actualGasUsed: number;
-  actualGasCost: number;
-  success: boolean;
+  entryPoint: Address;
+  userOperation: UserOperation;
 };
 
 export interface BaseContractCall {
@@ -114,7 +113,7 @@ export type CyberConnectRpcSchema = [
   },
   {
     Method: "eth_getUserOperationByHash";
-    Parameters: [Hash];
+    Parameters: [Hash, Omit<RpcContext, "owner">];
     ReturnType: UserOperationTransaction;
   }
 ];
@@ -144,7 +143,8 @@ export type CyberConnectActions = {
   ) => Promise<SendUserOperationReturn>;
 
   getUserOperationByHash: (
-    userOperationHash: Hash
+    userOperationHash: Hash,
+    ctx: RpcContext
   ) => Promise<UserOperationTransaction>;
 };
 
