@@ -61,10 +61,7 @@ export type SponsorUserOperationReturn = {
   userOperationHash: Hash;
 };
 
-export type SendUserOperationReturn = {
-  userOperation: UserOperation;
-  userOperationHash: Hash;
-};
+export type SendUserOperationReturn = Hash;
 
 export type UnsignedUserOperation = z.infer<typeof UnsignedUserOperationSchema>;
 export type UserOperation = z.infer<typeof UserOperationSchema>;
