@@ -79,6 +79,8 @@ export interface BaseContractCall {
   sender: Address;
   to: Address;
   callData: Hex;
+  value?: string;
+  maxFeePerGas?: bigint | null;
 }
 
 export interface EstimateContractCall extends BaseContractCall {

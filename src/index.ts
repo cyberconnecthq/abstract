@@ -49,7 +49,13 @@ function CyberAbstract(
     return await client.request({
       method: "cc_estimateUserOperation",
       params: [
-        { ...contractCall, value, nonce, maxFeePerGas: null, ep: entryPoint },
+        {
+          ...contractCall,
+          value: contractCall.value || value,
+          nonce,
+          maxFeePerGas: null,
+          ep: entryPoint,
+        },
         ctx,
       ],
     });
@@ -93,9 +99,9 @@ function CyberAbstract(
 
     const sponsorContractCall = {
       ...contractCall,
-      value,
+      value: contractCall?.value || value,
       nonce,
-      maxFeePerGas: estimatedGas.gasPriceFast,
+      maxFeePerGas: contractCall.maxFeePerGas || estimatedGas.gasPriceFast,
     };
 
     const sponsoredUserOperation = await sponsorUserOperation(
