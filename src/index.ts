@@ -124,12 +124,7 @@ function CyberAbstract(
 
     const userOperationHash = await sendUserOperation(userOperation, ctx);
 
-    const userOperationTransaction = await getUserOperationByHash(
-      userOperationHash,
-      ctx
-    );
-
-    return { userOperationTransaction, userOperationHash };
+    return { userOperationHash };
   }
 
   return {
