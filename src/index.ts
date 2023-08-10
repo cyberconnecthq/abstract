@@ -15,6 +15,7 @@ import {
   type EstimateContractCall,
   type SponsorContractCall,
   type BaseContractCall,
+  type SponsorUserOperationReturn,
 } from "./schema";
 
 const ENTRY_POINT = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
@@ -93,7 +94,13 @@ function CyberAbstract(
 
   async function sendTransaction(
     contractCall: BaseContractCall,
-    ctx: RpcContext
+    ctx: RpcContext,
+    override?: {
+      sponsorUserOperation?: (
+        contractCall: Omit<SponsorContractCall, "ep">,
+        ctx: RpcContext
+      ) => Promise<SponsorUserOperationReturn>;
+    }
   ) {
     const estimatedGas = await estimateTransaction(contractCall, ctx);
 
@@ -104,10 +111,9 @@ function CyberAbstract(
       maxFeePerGas: contractCall.maxFeePerGas || estimatedGas.gasPriceFast,
     };
 
-    const sponsoredUserOperation = await sponsorUserOperation(
-      sponsorContractCall,
-      ctx
-    );
+    const sponsor = override?.sponsorUserOperation || sponsorUserOperation;
+
+    const sponsoredUserOperation = await sponsor(sponsorContractCall, ctx);
 
     const signature = await signMessage(
       sponsoredUserOperation.userOperationHash
