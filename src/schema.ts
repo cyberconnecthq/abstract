@@ -47,9 +47,18 @@ const EstimatedUserOperationSchema = object({
   totalGasLimit: bigint(),
   totalGasFee: bigint(),
   credits: number(),
-  gasPriceSlow: bigint(),
-  gasPriceMedium: bigint(),
-  gasPriceFast: bigint(),
+  fast: object({
+    maxFeePerGas: bigint(),
+    maxPriorityFeePerGas: bigint(),
+  }),
+  medium: object({
+    maxFeePerGas: bigint(),
+    maxPriorityFeePerGas: bigint(),
+  }),
+  slow: object({
+    maxFeePerGas: bigint(),
+    maxPriorityFeePerGas: bigint(),
+  }),
 });
 
 export type EstimateUserOperationReturn = z.infer<

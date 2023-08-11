@@ -108,7 +108,8 @@ function CyberAbstract(
       ...contractCall,
       value: contractCall?.value || value,
       nonce,
-      maxFeePerGas: contractCall.maxFeePerGas || estimatedGas.gasPriceFast,
+      maxFeePerGas: estimatedGas.fast.maxFeePerGas,
+      maxPriorityFeePerGas: estimatedGas.fast.maxPriorityFeePerGas,
     };
 
     const sponsor = override?.sponsorUserOperation || sponsorUserOperation;
