@@ -55,6 +55,7 @@ function CyberAbstract(
           value: contractCall.value || value,
           nonce,
           maxFeePerGas: null,
+          maxPriorityFeePerGas: null,
           ep: entryPoint,
         },
         ctx,

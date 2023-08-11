@@ -90,6 +90,7 @@ export interface BaseContractCall {
   callData: Hex;
   value?: string;
   maxFeePerGas?: bigint | null;
+  maxPriorityFeePerGas?: bigint | null;
 }
 
 export interface EstimateContractCall extends BaseContractCall {
