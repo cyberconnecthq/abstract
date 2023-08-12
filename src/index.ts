@@ -16,6 +16,7 @@ import {
   type SponsorContractCall,
   type BaseContractCall,
   type SponsorUserOperationReturn,
+  type EstimateUserOperationReturn,
 } from "./schema";
 
 const ENTRY_POINT = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
@@ -101,9 +102,11 @@ function CyberAbstract(
         contractCall: Omit<SponsorContractCall, "ep">,
         ctx: RpcContext
       ) => Promise<SponsorUserOperationReturn>;
+      estimatedFee?: EstimateUserOperationReturn;
     }
   ) {
-    const estimatedGas = await estimateTransaction(contractCall, ctx);
+    const estimatedGas =
+      override?.estimatedFee || (await estimateTransaction(contractCall, ctx));
 
     const sponsorContractCall = {
       ...contractCall,
