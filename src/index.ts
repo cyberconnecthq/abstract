@@ -30,7 +30,9 @@ function CyberAbstract(
   const value = "0";
   const nonce = null;
 
-  const transport = http(rpcUrl);
+  const transport = http(rpcUrl, {
+    retryCount: 0,
+  });
 
   const cyberConnectActions = (): CyberConnectActions => ({
     estimateTransaction,
